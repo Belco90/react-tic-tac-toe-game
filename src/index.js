@@ -4,11 +4,10 @@ import './index.css';
 
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
+    <button className="square" onClick={props.onClickCb}>
       {props.value}
     </button>
   );
-
 }
 
 class Board extends React.Component {
@@ -39,9 +38,29 @@ class Board extends React.Component {
     return (
       <Square
         value={this.props.squares[pos]}
-        onClick={() => this.props.onClick(pos)}
+        onClickCb={() => this.props.onClickCb(pos)}
       />
     );
+  }
+}
+
+class Move extends React.Component {
+  render() {
+    let desc = this.getDescription();
+
+    return (
+      <li>
+        <a href="#" onClick={() => this.props.onClickCb(this.props.move)}>{desc}</a>
+      </li>
+    )
+  }
+
+  getDescription() {
+    if (this.props.move) {
+      return 'Move #' + this.props.move;
+    }
+
+    return 'Game start';
   }
 }
 
@@ -60,19 +79,31 @@ class Game extends React.Component {
     const current = this.getCurrentHistory();
     let status = this.getStatus(current.squares);
 
+    const moves = this.state.history.map((step, move) => {return this.renderMove(step, move)});
+
     return (
       <div className="game">
         <div className="game-board">
           <Board
             squares={current.squares}
-            onClick={(i) => this.handleClick(i)}
+            onClickCb={(i) => this.handleClick(i)}
           />
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{/* TODO */}</ol>
+          <ol>{moves}</ol>
         </div>
       </div>
+    );
+  }
+
+  renderMove(step, move) {
+    return (
+      <Move
+        move={move}
+        step={step}
+        onClickCb={(i) => this.jumpTo(i)}
+      />
     );
   }
 
@@ -110,6 +141,10 @@ class Game extends React.Component {
       xIsNext: !this.state.xIsNext,
     });
   }
+
+  jumpTo(move) {
+
+  }
 }
 
 // ========================================
@@ -140,7 +175,6 @@ function calculateWinner(squares) {
       return squares[a];
     }
   }
-
 
   return null;
 }
