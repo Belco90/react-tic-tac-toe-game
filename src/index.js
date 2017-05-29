@@ -71,15 +71,18 @@ class Game extends React.Component {
       history: [{
         squares: Array(9).fill(null)
       }],
+      stepNumber: 0,
       xIsNext: true,
     };
   }
 
   render() {
-    const current = this.getCurrentHistory();
+    const history = this.state.history;
+    const current = history[this.state.stepNumber];
     let status = this.getStatus(current.squares);
 
-    const moves = this.state.history.map((step, move) => {return this.renderMove(step, move)});
+    const moves = this.state.history.slice(0, this.state.stepNumber +1)
+      .map((squares, idx) => {return this.renderMove(squares, idx)});
 
     return (
       <div className="game">
@@ -100,16 +103,12 @@ class Game extends React.Component {
   renderMove(step, move) {
     return (
       <Move
+        key={move}
         move={move}
         step={step}
         onClickCb={(i) => this.jumpTo(i)}
       />
     );
-  }
-
-  getCurrentHistory() {
-    let history = this.state.history;
-    return history[history.length - 1];
   }
 
   getCurrentPlayer() {
@@ -127,7 +126,8 @@ class Game extends React.Component {
   }
 
   handleClick(pos) {
-    const current = this.getCurrentHistory();
+    const historyCopy = this.state.history.slice(0, this.state.stepNumber + 1);
+    const current = historyCopy[historyCopy.length - 1];
     const squaresCopy = current.squares.slice();
 
     if (calculateWinner(squaresCopy) || squaresCopy[pos]) {
@@ -137,13 +137,18 @@ class Game extends React.Component {
     squaresCopy[pos] = this.getCurrentPlayer();
 
     this.setState({
-      history: this.state.history.concat([{squares: squaresCopy}]),
+      history: historyCopy.concat([{squares: squaresCopy}]),
+      stepNumber: historyCopy.length,
       xIsNext: !this.state.xIsNext,
     });
   }
 
-  jumpTo(move) {
-
+  jumpTo(step) {
+    this.setState({
+      history: this.state.history.slice(0, this.state.stepNumber),
+      stepNumber: step,
+      xIsNext: (!(step % 2)),
+    });
   }
 }
 
